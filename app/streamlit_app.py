@@ -727,37 +727,38 @@ def render_splash_overlay(cases: list[dict[str, str]]) -> None:
     )
 
 
-st.set_page_config(
-    page_title=APP_DISPLAY_NAME,
-    page_icon=str(LOGO_ICON_PATH),
-    layout="wide",
-)
+def main() -> None:
+    st.set_page_config(
+        page_title=APP_DISPLAY_NAME,
+        page_icon=str(LOGO_ICON_PATH),
+        layout="wide",
+    )
 
-st.logo(
-    str(LOGO_PATH),
-    size="large",
-    link=REPO_URL,
-    icon_image=str(LOGO_MARK_PATH),
-)
+    st.logo(
+        str(LOGO_PATH),
+        size="large",
+        link=REPO_URL,
+        icon_image=str(LOGO_MARK_PATH),
+    )
 
-cases = load_incidents()
-case_labels = [case_label(case) for case in cases]
+    cases = load_incidents()
+    case_labels = [case_label(case) for case in cases]
 
-render_sidebar(cases)
-render_app_header(cases)
-selected_case = render_context_bar(cases, case_labels)
+    render_sidebar(cases)
+    render_app_header(cases)
+    selected_case = render_context_bar(cases, case_labels)
 
-input_col, result_col = st.columns([0.62, 0.38], gap="large")
+    input_col, result_col = st.columns([0.62, 0.38], gap="large")
 
-with input_col, st.container(border=True):
-    st.subheader("Incident report", icon=":material/edit_note:")
+    with input_col, st.container(border=True):
+        st.subheader("Incident report", icon=":material/edit_note:")
 
-    with st.form("triage_form", border=False):
         incident_text = st.text_area(
             "Incident report (logs)",
             value=incident_log_text(selected_case["description"]),
             height=250,
             help=HELP_TEXT["incident_report"],
+            key=f"incident_report_{selected_case['incident_id']}",
         )
 
         with st.expander("Expected label", icon=":material/visibility:", expanded=False):
@@ -767,7 +768,7 @@ with input_col, st.container(border=True):
             st.markdown(f"**Runbook:** `{selected_case['expected_runbook']}`")
             st.markdown(f"**Escalate:** `{selected_case['should_escalate']}`")
 
-        submitted = st.form_submit_button(
+        submitted = st.button(
             "Run triage",
             type="primary",
             icon=":material/play_arrow:",
@@ -775,27 +776,31 @@ with input_col, st.container(border=True):
             help=HELP_TEXT["run_triage"],
         )
 
-if submitted:
-    with st.spinner("Retrieving runbooks and calling the model..."):
-        st.session_state.triage_run = triage_incident_with_context(incident_text)
-        st.session_state.triage_case = case_label(selected_case)
-        st.session_state.triage_case_record = selected_case
-        st.session_state.triage_incident_text = incident_text
-    st.toast("Triage complete", icon=":material/check_circle:")
+    if submitted:
+        with st.spinner("Retrieving runbooks and calling the model..."):
+            st.session_state.triage_run = triage_incident_with_context(incident_text)
+            st.session_state.triage_case = case_label(selected_case)
+            st.session_state.triage_case_record = selected_case
+            st.session_state.triage_incident_text = incident_text
+        st.toast("Triage complete", icon=":material/check_circle:")
 
-with result_col:
-    if "triage_run" in st.session_state:
-        render_result(st.session_state.triage_run)
-        reviewed_case = st.session_state.get("triage_case_record", selected_case)
-        render_review_feedback(
-            st.session_state.triage_run,
-            str(reviewed_case.get("incident_id", "custom")),
-            str(st.session_state.get("triage_case", case_label(reviewed_case))),
-            str(st.session_state.get("triage_incident_text", incident_text)),
-        )
-    else:
-        render_empty_result(cases)
+    with result_col:
+        if "triage_run" in st.session_state:
+            render_result(st.session_state.triage_run)
+            reviewed_case = st.session_state.get("triage_case_record", selected_case)
+            render_review_feedback(
+                st.session_state.triage_run,
+                str(reviewed_case.get("incident_id", "custom")),
+                str(st.session_state.get("triage_case", case_label(reviewed_case))),
+                str(st.session_state.get("triage_incident_text", incident_text)),
+            )
+        else:
+            render_empty_result(cases)
 
-render_footer()
+    render_footer()
 
-render_splash_overlay(cases)
+    render_splash_overlay(cases)
+
+
+if __name__ == "__main__":
+    main()
