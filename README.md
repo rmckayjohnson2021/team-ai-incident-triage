@@ -1,114 +1,221 @@
-# Team AI Incident Triage
+<p align="center">
+  <img src="app/assets/triage_logo.svg" alt="RunbookOps AI" width="440">
+</p>
 
-Repository: https://github.com/rmckayjohnson2021/team-ai-incident-triage
+# RunbookOps AI
 
-## Overview
+**RunbookOps AI** is a local AI triage console for synthetic data-pipeline incidents. It turns messy incident reports into structured, sourced, reviewable recommendations by combining runbook retrieval, model-backed analysis, deterministic calibration, and held-out evaluation.
 
-Team AI Incident Triage is a local AI workflow app for synthetic data-pipeline incidents. A user submits an incident report, the app retrieves relevant guidance from approved runbooks, classifies the incident, recommends a next step, and marks whether human review is required.
+Repository: <https://github.com/rmckayjohnson2021/team-ai-incident-triage>
 
-This project demonstrates how to build a practical, reviewable AI workflow for team operations.
+## Why This Exists
 
-## Capability Signal
+Operational teams often have good runbooks, inconsistent incident notes, and limited time to convert noisy reports into reliable next steps. This project demonstrates a practical workflow pattern:
 
-> I can build a practical AI workflow that turns messy operational text into structured, sourced, reviewable recommendations.
+- Retrieve the most relevant approved runbook snippets.
+- Ask a model for structured triage output.
+- Validate the result against a schema.
+- Calibrate category, severity, and review routing with deterministic safeguards.
+- Route uncertain or risky cases to human review.
+- Evaluate behavior against held-out synthetic incidents.
 
-## What It Does
+## Screenshots
 
-- Accepts synthetic incident reports.
-- Retrieves relevant Markdown runbooks.
-- Produces structured triage output.
-- Cites supporting runbooks.
-- Flags uncertain or unsupported cases for human review.
-- Evaluates performance on held-out synthetic incidents.
+| Console overview | Workflow console |
+| --- | --- |
+| ![RunbookOps console overview](docs/screenshots/runbookops-console-overview.png) | ![RunbookOps workflow console](docs/screenshots/runbookops-workflow-console.png) |
 
-## What It Does Not Do
+| Sidebar and controls | Recommendation preview |
+| --- | --- |
+| ![RunbookOps sidebar](docs/screenshots/runbookops-sidebar.png) | ![RunbookOps recommendation preview](docs/screenshots/runbookops-recommendations.png) |
 
-- It does not execute remediation.
-- It does not use real incident data.
-- It does not prove production reliability.
-- It does not include production authentication or authorization.
-- It does not replace human incident owners.
+## Current Results
 
-## Tech Stack
+The latest held-out evaluation covers all 20 held-out incidents across five runbook categories.
 
-- Python
-- Streamlit
-- Pydantic
-- pytest
-- Ruff
-- Markdown runbooks
-- JSONL synthetic incident data
+| Metric | Result |
+| --- | ---: |
+| Category accuracy | 95% |
+| Severity accuracy | 100% |
+| Runbook match rate | 95% |
+| Review routing accuracy | 100% |
+| Provider errors | 0 |
+| Average latency | 8679 ms |
+| Median latency | 8664 ms |
+
+See [`reports/evaluation_report.md`](reports/evaluation_report.md) for case-level results.
+
+## How It Works
+
+```mermaid
+flowchart LR
+    A[Incident report] --> B[Runbook retrieval]
+    B --> C[Prompt builder]
+    C --> D[Model call]
+    D --> E[Pydantic schema validation]
+    E --> F[Deterministic calibration]
+    F --> G{Decision route}
+    G -->|clear evidence| H[Approved recommendation]
+    G -->|unclear or risky| I[Human review]
+    F --> J[Structured output]
+    B --> K[Retrieved evidence]
+    J --> L[Streamlit console]
+    K --> L
+```
+
+The workflow stays reviewable because every result exposes the model output, prompt preview, cited runbooks, retrieved snippets, evidence, and routing reason.
+
+## Decision Routing
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant UI as Streamlit Console
+    participant Retriever as Runbook Retriever
+    participant Model as Model Provider
+    participant Guardrails as Validation + Calibration
+
+    User->>UI: Select or edit incident report
+    UI->>Retriever: Retrieve relevant runbook snippets
+    Retriever-->>UI: Ranked snippets and matched terms
+    UI->>Model: Send incident + approved evidence
+    Model-->>UI: Structured JSON response
+    UI->>Guardrails: Validate schema and calibrate route
+    Guardrails-->>UI: Approved or human review decision
+    UI-->>User: Recommendation, evidence, route reason, diagnostics
+```
+
+Human review is required when the first failing component is unclear, evidence is missing, multiple systems are affected, source data appears corrupt, access/security/audit/payroll concerns are involved, or the incident tries to override workflow instructions.
+
+## Evaluation Loop
+
+```mermaid
+flowchart TD
+    A[Development incidents] --> B[Iterate retrieval and prompt behavior]
+    B --> C[Run focused tests]
+    C --> D[Held-out evaluation]
+    D --> E[Markdown report]
+    E --> F{Gaps found?}
+    F -->|yes| B
+    F -->|no| G[Stable demo baseline]
+```
+
+The project includes 40 synthetic incidents:
+
+- 20 development cases for iteration.
+- 20 held-out cases for evaluation.
+- Five runbook categories: schema change, failed import, duplicate records, stale dashboard, ambiguous outage.
 
 ## Project Structure
 
 ```text
 team-ai-incident-triage/
   app/
+    assets/
+      triage_logo.svg
+      triage_mark.svg
+      triage_icon.svg
+      author_avatar.png
     streamlit_app.py
     triage/
-      schemas.py
-      retrieval.py
       execution.py
-      workflow.py
       evaluation.py
+      retrieval.py
+      schemas.py
+      workflow.py
   data/
     incidents/
+      dev_cases.jsonl
+      heldout_cases.jsonl
     runbooks/
+      ambiguous_outage.md
+      duplicate_records.md
+      failed_import.md
+      schema_change.md
+      stale_dashboard.md
+  docs/
+    screenshots/
   reports/
+    evaluation_report.md
   tests/
 ```
 
-## Setup
+## Tech Stack
+
+- Python 3.14
+- Streamlit
+- OpenAI Responses API
+- Pydantic
+- pytest
+- Ruff
+- Markdown runbooks
+- JSONL incident datasets
+
+## Quick Start
+
+Install dependencies:
 
 ```powershell
 uv sync
+```
+
+Create local environment settings:
+
+```powershell
 Copy-Item .env.example .env
 ```
 
-Edit `.env` and add local values. Do not commit `.env`.
+Edit `.env`:
 
-Minimum `.env` values for provider-backed triage:
-
-```env
+```ini
 OPENAI_API_KEY=your_api_key_here
 DEFAULT_STRONG_MODEL=gpt-5-mini
 ```
 
-If `OPENAI_API_KEY` is missing or still set to `replace_me`, the app stays runnable and routes incidents to human review with a clear provider-not-configured status.
-
-## Run the App
+Run the app:
 
 ```powershell
 uv run streamlit run streamlit_app.py
 ```
 
+Open the console:
+
+```text
+http://localhost:8501
+```
+
+If `OPENAI_API_KEY` is missing or still set to `replace_me`, the app remains runnable and routes incidents to human review with a clear provider diagnostic.
+
 ## Run Tests
 
 ```powershell
-uv run pytest
 uv run ruff check .
+uv run pytest
 ```
 
 ## Run Evaluation
+
+Run the default low-cost sample:
 
 ```powershell
 uv run python -m app.triage.evaluation
 ```
 
-By default, evaluation runs the first 3 held-out incidents to keep API usage
-intentional. To evaluate the full 20-case held-out set:
+Run all held-out incidents:
 
 ```powershell
 uv run python -m app.triage.evaluation --all
 ```
 
-The evaluator writes a Markdown report to `reports/evaluation_report.md`. Use
-`--limit 5` for a larger sample or `--output reports/my_report.md` for a custom
-report path.
+Write a custom report:
+
+```powershell
+uv run python -m app.triage.evaluation --limit 5 --output reports/my_report.md
+```
 
 ## Output Schema
 
-Each result should include:
+Each triage result is validated into a structured object with:
 
 - category
 - severity
@@ -121,36 +228,24 @@ Each result should include:
 - review status
 - workflow version
 
-## Demo Scenarios
+## What This Demonstrates
 
-1. Routine failed import with a sourced recommendation.
-2. Ambiguous outage routed to human review.
-3. Incident text containing malicious instructions that the workflow ignores.
+- Retrieval-augmented workflow design over approved local knowledge.
+- Structured model output with schema validation.
+- Human-in-the-loop routing for ambiguous or high-risk cases.
+- Deterministic calibration around severity and review decisions.
+- Reproducible local evaluation with held-out synthetic cases.
+- A professional Streamlit console for inspection, demo, and iteration.
 
-## Evaluation
+## What It Does Not Do
 
-The evaluation uses held-out synthetic incidents and reports:
-
-- category accuracy
-- severity match
-- source/runbook match rate
-- recommendation acceptability
-- human-review rate
-- invalid-output rate
-- latency
-
-## Limitations
-
-This is a workflow demonstration using synthetic data. Production use would require:
-
-- real authentication
-- server-enforced authorization
-- team isolation
-- larger evaluation datasets
-- monitoring
-- incident-owner review
-- provider-failure playbooks
+- It does not execute remediation.
+- It does not use real customer or production incident data.
+- It does not replace incident owners.
+- It does not include production authentication, authorization, audit logging, or tenant isolation.
+- It does not prove production reliability without a larger real-world evaluation set.
 
 ## Companion Project
 
-This app is designed to integrate with `llm-cost-eval-gateway`, a reusable gateway for model execution, budget enforcement, routing, retries, and evaluation.
+This repo is designed to pair with [`llm-cost-eval-gateway`](https://github.com/rmckayjohnson2021/llm-cost-eval-gateway), a reusable gateway for model execution, budget enforcement, routing, retries, and evaluation.
+
