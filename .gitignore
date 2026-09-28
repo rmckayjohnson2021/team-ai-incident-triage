@@ -7,4 +7,5 @@ __pycache__/
 *.sqlite
 *.sqlite3
 data/ledger.db
+data/reviews/*.jsonl
 reports/tmp/

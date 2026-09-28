@@ -8,6 +8,15 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from app.triage.review_log import (
+    DEFAULT_REVIEW_LOG,
+    REVIEW_OUTCOMES,
+    REVIEW_REASON_TAGS,
+    append_review,
+    create_review_record,
+    load_reviews,
+    summarize_reviews,
+)
 from app.triage.workflow import TriageRun, triage_incident_with_context
 
 INCIDENT_DIR = PROJECT_ROOT / "data" / "incidents"
@@ -81,6 +90,7 @@ HELP_TEXT = {
     "prompt_preview": "The prompt sent to the model, including incident text and approved runbook snippets.",
     "sample_metadata": "Metadata for the selected synthetic case, useful during demos and held-out evaluation review.",
     "project_artifact": "Project context: what the workflow demonstrates and where to inspect the source.",
+    "learning_loop": "Reviewer feedback is saved locally as JSONL so corrections can become runbook updates or new evaluation cases.",
     "splash": "This first-use overview introduces the workflow before you enter the triage console.",
 }
 
@@ -328,6 +338,24 @@ def render_empty_result(cases: list[dict[str, str]]) -> None:
     )
 
 
+def render_learning_backlog(path=DEFAULT_REVIEW_LOG) -> None:
+    reviews = load_reviews(path)
+    summary = summarize_reviews(reviews)
+
+    st.subheader("Learning backlog", icon=":material/model_training:", help=HELP_TEXT["learning_loop"])
+    cols = st.columns(2)
+    cols[0].metric("Reviews", summary.total_reviews, help="Saved reviewer feedback records.", border=True)
+    cols[1].metric("Runbook gaps", summary.missing_runbook_guidance, help="Reviews flagged as missing guidance.", border=True)
+    cols[0].metric("Corrections", summary.category_corrections + summary.severity_corrections, border=True)
+    cols[1].metric("Eval candidates", summary.promoted_eval_candidates, border=True)
+
+    if summary.reason_counts:
+        top_reason, top_count = summary.reason_counts.most_common(1)[0]
+        st.caption(f"Top feedback signal: `{top_reason}` ({top_count})")
+    else:
+        st.caption("No reviewer feedback saved yet.")
+
+
 def render_sidebar(cases: list[dict[str, str]]) -> None:
     with st.sidebar:
         st.image(str(LOGO_MARK_PATH), width=74)
@@ -373,6 +401,8 @@ def render_sidebar(cases: list[dict[str, str]]) -> None:
         st.subheader("Evaluation", icon=":material/query_stats:", help=HELP_TEXT["evaluation_ready"])
         with st.expander("Evaluation command", icon=":material/terminal:", expanded=False):
             st.code("uv run python -m app.triage.evaluation", language="powershell")
+
+        render_learning_backlog()
 
         st.subheader("Builder", icon=":material/person:", help="Author and source links for reviewers.")
         author_image, author_text = st.columns([0.34, 0.66], vertical_alignment="center")
@@ -421,6 +451,85 @@ def render_footer() -> None:
                 f"[Source repository]({REPO_URL}) | [Companion gateway]({COMPANION_REPO_URL})",
                 text_alignment="right",
             )
+
+
+def render_review_feedback(run: TriageRun, incident_id: str, case_label_text: str, incident_text: str) -> None:
+    analysis = run.analysis
+    category_options = list(CATEGORY_LABELS)
+    severity_options = list(SEVERITY_COLORS)
+
+    with st.container(border=True):
+        st.subheader("Review outcome", icon=":material/rate_review:", help=HELP_TEXT["learning_loop"])
+        st.caption(
+            "Capture reviewer judgment so corrections can become runbook updates, severity calibration changes, or new held-out eval cases."
+        )
+
+        with st.form("review_feedback_form", border=False):
+            outcome_col, category_col, severity_col = st.columns(3)
+            outcome = outcome_col.selectbox(
+                "Outcome",
+                REVIEW_OUTCOMES,
+                format_func=lambda value: value.replace("_", " ").title(),
+                help="How the reviewer judged this triage result.",
+            )
+            corrected_category = category_col.selectbox(
+                "Correct category",
+                category_options,
+                index=category_options.index(analysis.category),
+                format_func=lambda value: CATEGORY_LABELS.get(value, value),
+            )
+            corrected_severity = severity_col.selectbox(
+                "Correct severity",
+                severity_options,
+                index=severity_options.index(analysis.severity),
+                format_func=str.upper,
+            )
+
+            reason_tags = st.multiselect(
+                "Feedback signals",
+                REVIEW_REASON_TAGS,
+                format_func=lambda value: value.replace("_", " ").title(),
+                help="Signals that explain what the system should learn from this review.",
+            )
+            proposed_update = st.text_area(
+                "Proposed runbook update",
+                placeholder="Example: Add a step for validating renamed vendor columns before retrying the import.",
+                height=90,
+            )
+            reviewer_note = st.text_area(
+                "Reviewer note",
+                placeholder="Optional note for future analysis.",
+                height=80,
+            )
+            promote_to_eval = st.checkbox(
+                "Promote this case to the evaluation backlog",
+                help="Mark this reviewed scenario as a candidate for a future held-out evaluation case.",
+            )
+
+            submitted = st.form_submit_button(
+                "Save review feedback",
+                type="secondary",
+                icon=":material/save:",
+                width="stretch",
+            )
+
+        if submitted:
+            record = create_review_record(
+                run=run,
+                incident_id=incident_id,
+                case_label=case_label_text,
+                incident_text=incident_text,
+                outcome=outcome,
+                reason_tags=list(reason_tags),
+                corrected_category=corrected_category,
+                corrected_severity=corrected_severity,
+                reviewer_note=reviewer_note,
+                proposed_runbook_update=proposed_update,
+                promote_to_eval=promote_to_eval,
+            )
+            append_review(record)
+            st.success("Review feedback saved to the local learning log.", icon=":material/check_circle:")
+            st.caption(f"Log path: `{DEFAULT_REVIEW_LOG}`")
 
 
 def render_splash_overlay(cases: list[dict[str, str]]) -> None:
@@ -670,11 +779,20 @@ if submitted:
     with st.spinner("Retrieving runbooks and calling the model..."):
         st.session_state.triage_run = triage_incident_with_context(incident_text)
         st.session_state.triage_case = case_label(selected_case)
+        st.session_state.triage_case_record = selected_case
+        st.session_state.triage_incident_text = incident_text
     st.toast("Triage complete", icon=":material/check_circle:")
 
 with result_col:
     if "triage_run" in st.session_state:
         render_result(st.session_state.triage_run)
+        reviewed_case = st.session_state.get("triage_case_record", selected_case)
+        render_review_feedback(
+            st.session_state.triage_run,
+            str(reviewed_case.get("incident_id", "custom")),
+            str(st.session_state.get("triage_case", case_label(reviewed_case))),
+            str(st.session_state.get("triage_incident_text", incident_text)),
+        )
     else:
         render_empty_result(cases)
 

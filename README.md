@@ -18,6 +18,7 @@ Operational teams often have good runbooks, inconsistent incident notes, and lim
 - Calibrate category, severity, and review routing with deterministic safeguards.
 - Route uncertain or risky cases to human review.
 - Evaluate behavior against held-out synthetic incidents.
+- Capture reviewer feedback as a learning backlog for runbook and eval improvements.
 
 ## Screenshots
 
@@ -106,6 +107,26 @@ The project includes 40 synthetic incidents:
 - 20 held-out cases for evaluation.
 - Five runbook categories: schema change, failed import, duplicate records, stale dashboard, ambiguous outage.
 
+## Incident Learning Loop
+
+The differentiating workflow is the reviewer feedback loop. After a triage run, a reviewer can mark the result as accepted, edited, or rejected; correct category or severity; tag the reason; propose a runbook update; and promote the case to a future evaluation backlog.
+
+```mermaid
+flowchart LR
+    A[Triage result] --> B[Reviewer outcome]
+    B --> C[Local JSONL review log]
+    C --> D[Learning backlog summary]
+    D --> E[Runbook update candidates]
+    D --> F[New held-out eval candidates]
+    E --> G[Improve runbooks]
+    F --> H[Expand evaluation set]
+    G --> I[Retest workflow]
+    H --> I
+    I --> A
+```
+
+Reviewer feedback is saved locally by default at `data/reviews/triage_reviews.jsonl`. The path is ignored by Git so local review notes are not committed accidentally.
+
 ## Project Structure
 
 ```text
@@ -120,6 +141,8 @@ team-ai-incident-triage/
     triage/
       execution.py
       evaluation.py
+      review_log.py
+      review_report.py
       retrieval.py
       schemas.py
       workflow.py
@@ -127,6 +150,7 @@ team-ai-incident-triage/
     incidents/
       dev_cases.jsonl
       heldout_cases.jsonl
+    reviews/
     runbooks/
       ambiguous_outage.md
       duplicate_records.md
@@ -213,6 +237,16 @@ Write a custom report:
 uv run python -m app.triage.evaluation --limit 5 --output reports/my_report.md
 ```
 
+## Run Review Learning Report
+
+After saving review feedback in the app, generate a backlog report:
+
+```powershell
+uv run python -m app.triage.review_report
+```
+
+The command writes `reports/review_learning_report.md` with reviewer outcomes, correction counts, missing-runbook signals, proposed runbook updates, and candidate evaluation cases.
+
 ## Output Schema
 
 Each triage result is validated into a structured object with:
@@ -235,6 +269,7 @@ Each triage result is validated into a structured object with:
 - Human-in-the-loop routing for ambiguous or high-risk cases.
 - Deterministic calibration around severity and review decisions.
 - Reproducible local evaluation with held-out synthetic cases.
+- Reviewer feedback capture that turns human corrections into a learning backlog.
 - A professional Streamlit console for inspection, demo, and iteration.
 
 ## What It Does Not Do
@@ -248,4 +283,3 @@ Each triage result is validated into a structured object with:
 ## Companion Project
 
 This repo is designed to pair with [`llm-cost-eval-gateway`](https://github.com/rmckayjohnson2021/llm-cost-eval-gateway), a reusable gateway for model execution, budget enforcement, routing, retries, and evaluation.
-
