@@ -35,6 +35,10 @@ chartCategoricalColors = ["#00E5FF", "#0072FF", "#A78BFA", "#34D399", "#FDBA74",
 [client]
 toolbarMode = "minimal"
 
+[server]
+address = "0.0.0.0"
+headless = true
+
 [theme.sidebar]
 backgroundColor = "#080C12"
 secondaryBackgroundColor = "#111827"

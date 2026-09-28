@@ -705,11 +705,11 @@ def render_splash_overlay(cases: list[dict[str, str]]) -> None:
             const root = document.getElementById("runbookops-splash");
             if (!root) return;
             const close = () => {{
-              try {{ window.localStorage.setItem(key, "true"); }} catch (error) {{}}
+              try {{ window.sessionStorage.setItem(key, "true"); }} catch (error) {{}}
               root.remove();
             }};
             try {{
-              if (window.localStorage.getItem(key) === "true") {{
+              if (window.sessionStorage.getItem(key) === "true") {{
                 root.remove();
                 return;
               }}

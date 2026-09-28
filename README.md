@@ -208,6 +208,12 @@ Open the console:
 http://localhost:8501
 ```
 
+If a browser does not resolve `localhost`, use the explicit loopback URL:
+
+```text
+http://127.0.0.1:8501
+```
+
 If `OPENAI_API_KEY` is missing or still set to `replace_me`, the app remains runnable and routes incidents to human review with a clear provider diagnostic.
 
 ## Run Tests
