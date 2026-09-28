@@ -418,53 +418,199 @@ def render_footer() -> None:
             )
 
 
-def close_splash() -> None:
-    st.session_state.show_splash = False
-
-
-def render_splash(cases: list[dict[str, str]]) -> None:
-    with st.container(horizontal_alignment="center"):
-        st.image(str(LOGO_PATH), width=420)
-        st.caption(
-            "A runbook-grounded incident triage console for testing retrieval, structured model output, and review routing.",
-            help=HELP_TEXT["splash"],
-        )
-
-    st.space("small")
-
-    metric_columns = st.columns(3, gap="medium")
-    metric_columns[0].metric(
-        "Incident records",
-        len(cases),
-        help="Synthetic incidents available in the console.",
-        border=True,
+def render_splash_overlay(cases: list[dict[str, str]]) -> None:
+    st.html(
+        f"""
+        <div id="runbookops-splash" role="dialog" aria-modal="true" aria-labelledby="runbookops-splash-title">
+          <div class="runbookops-splash-backdrop"></div>
+          <section class="runbookops-splash-panel">
+            <button class="runbookops-splash-close" type="button" aria-label="Close splash screen">x</button>
+            <div class="runbookops-splash-brand">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="runbookops-splash-mark" aria-hidden="true">
+                <defs>
+                  <linearGradient id="splashGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#00E5FF" />
+                    <stop offset="100%" stop-color="#0072FF" />
+                  </linearGradient>
+                </defs>
+                <rect width="100" height="100" rx="20" fill="#0B0F17"/>
+                <path d="M 40 6 L 72 18 L 72 54 C 72 70 40 80 40 80 C 40 80 8 70 8 54 L 8 18 Z" fill="none" stroke="url(#splashGrad)" stroke-width="2.5" stroke-opacity="0.35" />
+                <path d="M 40 26 C 30 22 20 24 18 26 L 18 58 C 20 56 30 54 40 58 Z" fill="none" stroke="url(#splashGrad)" stroke-width="3" stroke-linejoin="round" />
+                <path d="M 40 26 C 50 22 60 24 62 26 L 62 58 C 60 56 50 54 40 58 Z" fill="none" stroke="url(#splashGrad)" stroke-width="3" stroke-linejoin="round" />
+                <line x1="40" y1="16" x2="40" y2="68" stroke="#00E5FF" stroke-width="2.5" stroke-dasharray="4 2" />
+                <circle cx="40" cy="42" r="5" fill="#00E5FF" />
+                <circle cx="28" cy="36" r="2.5" fill="#00E5FF" />
+                <circle cx="52" cy="36" r="2.5" fill="#00E5FF" />
+              </svg>
+              <div>
+                <h1 id="runbookops-splash-title">RunbookOps AI</h1>
+                <p>AI triage engine</p>
+              </div>
+            </div>
+            <p class="runbookops-splash-copy">
+              A runbook-grounded incident triage console for testing retrieval,
+              structured model output, and review routing.
+            </p>
+            <div class="runbookops-splash-metrics" aria-label="Workflow overview">
+              <div><span>{len(cases)}</span><strong>Incident records</strong></div>
+              <div><span>{split_count(cases, "Held-out")}</span><strong>Held-out cases</strong></div>
+              <div><span>{category_coverage(cases)}</span><strong>Coverage</strong></div>
+            </div>
+            <div class="runbookops-splash-start">
+              <h2>Start in the console</h2>
+              <p>Choose a sample incident, inspect retrieved runbook evidence, then run triage to review the model's structured decision.</p>
+              <button class="runbookops-splash-enter" type="button">Enter console</button>
+            </div>
+          </section>
+        </div>
+        <style>
+          #runbookops-splash {{
+            position: fixed;
+            inset: 0;
+            z-index: 2147483647;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            color: #E5E7EB;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          }}
+          .runbookops-splash-backdrop {{
+            position: absolute;
+            inset: 0;
+            background: rgba(3, 7, 18, 0.78);
+            backdrop-filter: blur(10px);
+          }}
+          .runbookops-splash-panel {{
+            position: relative;
+            width: min(760px, 100%);
+            border: 1px solid #293548;
+            border-radius: 12px;
+            background: linear-gradient(145deg, rgba(17, 24, 39, 0.98), rgba(8, 12, 18, 0.98));
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+            padding: 28px;
+          }}
+          .runbookops-splash-close {{
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 34px;
+            height: 34px;
+            border: 1px solid #293548;
+            border-radius: 8px;
+            background: #0B0F17;
+            color: #94A3B8;
+            cursor: pointer;
+          }}
+          .runbookops-splash-brand {{
+            display: flex;
+            align-items: center;
+            gap: 16px;
+          }}
+          .runbookops-splash-mark {{
+            width: 72px;
+            height: 72px;
+            flex: 0 0 auto;
+          }}
+          .runbookops-splash-brand h1 {{
+            margin: 0;
+            color: #F8FAFC;
+            font-size: 30px;
+            line-height: 1.1;
+          }}
+          .runbookops-splash-brand p,
+          .runbookops-splash-copy,
+          .runbookops-splash-start p {{
+            margin: 6px 0 0;
+            color: #94A3B8;
+          }}
+          .runbookops-splash-copy {{
+            margin-top: 22px;
+            font-size: 15px;
+            line-height: 1.55;
+          }}
+          .runbookops-splash-metrics {{
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin: 24px 0 16px;
+          }}
+          .runbookops-splash-metrics div {{
+            border: 1px solid #293548;
+            border-radius: 8px;
+            background: #0B0F17;
+            padding: 16px;
+          }}
+          .runbookops-splash-metrics span {{
+            display: block;
+            color: #F8FAFC;
+            font-size: 30px;
+            line-height: 1;
+            margin-bottom: 8px;
+          }}
+          .runbookops-splash-metrics strong {{
+            color: #CBD5E1;
+            font-size: 13px;
+            font-weight: 600;
+          }}
+          .runbookops-splash-start {{
+            border: 1px solid #293548;
+            border-radius: 8px;
+            background: #080C12;
+            padding: 18px;
+          }}
+          .runbookops-splash-start h2 {{
+            margin: 0;
+            color: #F8FAFC;
+            font-size: 20px;
+            line-height: 1.2;
+          }}
+          .runbookops-splash-enter {{
+            width: 100%;
+            margin-top: 18px;
+            border: 0;
+            border-radius: 8px;
+            background: linear-gradient(90deg, #00E5FF, #0072FF);
+            color: #03111F;
+            cursor: pointer;
+            font-weight: 700;
+            padding: 12px 16px;
+          }}
+          @media (max-width: 720px) {{
+            .runbookops-splash-panel {{
+              padding: 22px;
+            }}
+            .runbookops-splash-metrics {{
+              grid-template-columns: 1fr;
+            }}
+          }}
+        </style>
+        <script>
+          (() => {{
+            const key = "runbookopsSplashDismissed";
+            const root = document.getElementById("runbookops-splash");
+            if (!root) return;
+            const close = () => {{
+              try {{ window.localStorage.setItem(key, "true"); }} catch (error) {{}}
+              root.remove();
+            }};
+            try {{
+              if (window.localStorage.getItem(key) === "true") {{
+                root.remove();
+                return;
+              }}
+            }} catch (error) {{}}
+            root.querySelector(".runbookops-splash-enter")?.addEventListener("click", close);
+            root.querySelector(".runbookops-splash-close")?.addEventListener("click", close);
+            root.querySelector(".runbookops-splash-backdrop")?.addEventListener("click", close);
+            document.addEventListener("keydown", (event) => {{
+              if (event.key === "Escape" && document.getElementById("runbookops-splash")) close();
+            }});
+          }})();
+        </script>
+        """,
+        unsafe_allow_javascript=True,
     )
-    metric_columns[1].metric(
-        "Held-out cases",
-        split_count(cases, "Held-out"),
-        help="Reserved cases used for evaluation.",
-        border=True,
-    )
-    metric_columns[2].metric(
-        "Coverage",
-        category_coverage(cases),
-        help="Runbook category coverage across the synthetic dataset.",
-        border=True,
-    )
-
-    with st.container(border=True):
-        st.subheader("Start in the console", icon=":material/rocket_launch:")
-        st.markdown(
-            "Choose a sample incident, inspect retrieved runbook evidence, then run triage to review the model's structured decision."
-        )
-        st.button(
-            "Enter console",
-            type="primary",
-            icon=":material/login:",
-            width="stretch",
-            help="Close this introduction for the current browser session.",
-            on_click=close_splash,
-        )
 
 
 st.set_page_config(
@@ -482,12 +628,6 @@ st.logo(
 
 cases = load_incidents()
 case_labels = [case_label(case) for case in cases]
-
-if "show_splash" not in st.session_state:
-    st.session_state.show_splash = True
-if st.session_state.show_splash:
-    render_splash(cases)
-    st.stop()
 
 render_sidebar(cases)
 render_app_header(cases)
@@ -534,3 +674,5 @@ with result_col:
         render_empty_result(cases)
 
 render_footer()
+
+render_splash_overlay(cases)
