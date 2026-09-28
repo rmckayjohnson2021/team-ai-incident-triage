@@ -4,6 +4,7 @@ from app.triage import execution
 
 
 def test_call_model_returns_human_review_when_key_missing(monkeypatch):
+    monkeypatch.setenv("MODEL_EXECUTION_BACKEND", "direct")
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
     result = execution.call_model("incident text")
@@ -16,6 +17,7 @@ def test_call_model_returns_human_review_when_key_missing(monkeypatch):
 
 
 def test_call_model_uses_responses_api(monkeypatch):
+    monkeypatch.setenv("MODEL_EXECUTION_BACKEND", "direct")
     monkeypatch.setenv("OPENAI_API_KEY", "test-key")
     monkeypatch.setenv("DEFAULT_STRONG_MODEL", "test-model")
 
@@ -68,6 +70,7 @@ def test_call_model_uses_responses_api(monkeypatch):
 
 
 def test_call_model_returns_sanitized_provider_error(monkeypatch):
+    monkeypatch.setenv("MODEL_EXECUTION_BACKEND", "direct")
     monkeypatch.setenv("OPENAI_API_KEY", "secret-test-key")
     monkeypatch.setenv("DEFAULT_STRONG_MODEL", "test-model")
 
@@ -103,3 +106,20 @@ def test_extract_response_text_handles_dict_content():
             self.output = [FakeItem()]
 
     assert execution.extract_response_text(FakeResponse()) == '{"ok": true}'
+
+
+def test_call_model_can_route_through_gateway_backend(monkeypatch):
+    monkeypatch.setenv("MODEL_EXECUTION_BACKEND", "gateway")
+
+    expected = execution.ModelResult(text='{"ok": true}', latency_ms=7, input_tokens=1, output_tokens=2)
+
+    def fake_call_gateway(prompt, model=None):
+        assert prompt == "incident prompt"
+        assert model is None
+        return expected
+
+    from app.triage import gateway_client
+
+    monkeypatch.setattr(gateway_client, "call_gateway", fake_call_gateway)
+
+    assert execution.call_model("incident prompt") == expected

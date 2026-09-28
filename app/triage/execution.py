@@ -57,6 +57,11 @@ def configured_model(model: str | None = None) -> str:
     return DEFAULT_MODEL
 
 
+def configured_backend() -> str:
+    value = os.getenv("MODEL_EXECUTION_BACKEND", "direct").strip().lower()
+    return value if value in {"direct", "gateway"} else "direct"
+
+
 def fallback_payload(route_reason: str, recommendation: str) -> str:
     return json.dumps(
         {
@@ -145,6 +150,12 @@ def extract_usage(response: Any) -> tuple[int | None, int | None]:
 
 def call_model(prompt: str, model: str | None = None) -> ModelResult:
     start = perf_counter()
+
+    if configured_backend() == "gateway":
+        from app.triage.gateway_client import call_gateway
+
+        return call_gateway(prompt, model)
+
     api_key = configured_api_key()
     selected_model = configured_model(model)
 
