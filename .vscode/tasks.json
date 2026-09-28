@@ -1,0 +1,19 @@
+﻿{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run tests",
+      "type": "shell",
+      "command": "uv run pytest",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Streamlit app",
+      "type": "shell",
+      "command": "uv run streamlit run app/streamlit_app.py",
+      "group": "build",
+      "problemMatcher": []
+    }
+  ]
+}
