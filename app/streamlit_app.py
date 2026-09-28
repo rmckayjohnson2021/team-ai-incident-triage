@@ -418,20 +418,21 @@ def render_footer() -> None:
             )
 
 
-@st.dialog(
-    "Welcome to RunbookOps AI",
-    width="medium",
-    dismissible=False,
-    icon=":material/rocket_launch:",
-)
-def render_splash(cases: list[dict[str, str]]) -> None:
-    st.image(str(LOGO_PATH), width="stretch")
-    st.caption(
-        "A runbook-grounded incident triage console for testing retrieval, structured model output, and review routing.",
-        help=HELP_TEXT["splash"],
-    )
+def close_splash() -> None:
+    st.session_state.show_splash = False
 
-    metric_columns = st.columns(3)
+
+def render_splash(cases: list[dict[str, str]]) -> None:
+    with st.container(horizontal_alignment="center"):
+        st.image(str(LOGO_PATH), width=420)
+        st.caption(
+            "A runbook-grounded incident triage console for testing retrieval, structured model output, and review routing.",
+            help=HELP_TEXT["splash"],
+        )
+
+    st.space("small")
+
+    metric_columns = st.columns(3, gap="medium")
     metric_columns[0].metric(
         "Incident records",
         len(cases),
@@ -451,18 +452,19 @@ def render_splash(cases: list[dict[str, str]]) -> None:
         border=True,
     )
 
-    st.markdown(
-        "Start with a sample incident, inspect the retrieved runbook evidence, then run triage to review the model's structured decision."
-    )
-    if st.button(
-        "Enter console",
-        type="primary",
-        icon=":material/login:",
-        width="stretch",
-        help="Close this introduction for the current browser session.",
-    ):
-        st.session_state.show_splash = False
-        st.rerun()
+    with st.container(border=True):
+        st.subheader("Start in the console", icon=":material/rocket_launch:")
+        st.markdown(
+            "Choose a sample incident, inspect retrieved runbook evidence, then run triage to review the model's structured decision."
+        )
+        st.button(
+            "Enter console",
+            type="primary",
+            icon=":material/login:",
+            width="stretch",
+            help="Close this introduction for the current browser session.",
+            on_click=close_splash,
+        )
 
 
 st.set_page_config(
@@ -485,6 +487,7 @@ if "show_splash" not in st.session_state:
     st.session_state.show_splash = True
 if st.session_state.show_splash:
     render_splash(cases)
+    st.stop()
 
 render_sidebar(cases)
 render_app_header(cases)
