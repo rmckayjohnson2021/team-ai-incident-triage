@@ -8,7 +8,7 @@ Team AI Incident Triage is a local AI workflow app for synthetic data-pipeline i
 
 This project demonstrates how to build a practical, reviewable AI workflow for team operations.
 
-## Employer Signal
+## Capability Signal
 
 > I can build a practical AI workflow that turns messy operational text into structured, sourced, reviewable recommendations.
 
@@ -67,10 +67,19 @@ Copy-Item .env.example .env
 
 Edit `.env` and add local values. Do not commit `.env`.
 
+Minimum `.env` values for provider-backed triage:
+
+```env
+OPENAI_API_KEY=your_api_key_here
+DEFAULT_STRONG_MODEL=gpt-5-mini
+```
+
+If `OPENAI_API_KEY` is missing or still set to `replace_me`, the app stays runnable and routes incidents to human review with a clear provider-not-configured status.
+
 ## Run the App
 
 ```powershell
-uv run streamlit run app/streamlit_app.py
+uv run streamlit run streamlit_app.py
 ```
 
 ## Run Tests
@@ -85,6 +94,17 @@ uv run ruff check .
 ```powershell
 uv run python -m app.triage.evaluation
 ```
+
+By default, evaluation runs the first 3 held-out incidents to keep API usage
+intentional. To evaluate the full 20-case held-out set:
+
+```powershell
+uv run python -m app.triage.evaluation --all
+```
+
+The evaluator writes a Markdown report to `reports/evaluation_report.md`. Use
+`--limit 5` for a larger sample or `--output reports/my_report.md` for a custom
+report path.
 
 ## Output Schema
 
@@ -121,7 +141,7 @@ The evaluation uses held-out synthetic incidents and reports:
 
 ## Limitations
 
-This is a portfolio demonstration using synthetic data. Production use would require:
+This is a workflow demonstration using synthetic data. Production use would require:
 
 - real authentication
 - server-enforced authorization

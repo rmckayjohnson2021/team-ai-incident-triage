@@ -1,0 +1,21 @@
+<svg width="360" height="88" viewBox="0 0 360 88" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">RunbookOps Triage logo</title>
+  <desc id="desc">A professional logo with a connected triage mark and the RunbookOps Triage wordmark.</desc>
+  <rect width="360" height="88" rx="18" fill="#0B0F14"/>
+  <rect x="1" y="1" width="358" height="86" rx="17" stroke="#334155" stroke-width="2"/>
+  <g transform="translate(24 20)">
+    <rect x="0" y="0" width="48" height="48" rx="12" fill="#111827" stroke="#2DD4BF" stroke-width="2"/>
+    <path d="M14 15H34" stroke="#E5E7EB" stroke-width="3" stroke-linecap="round"/>
+    <path d="M14 24H28" stroke="#E5E7EB" stroke-width="3" stroke-linecap="round"/>
+    <path d="M14 33H23" stroke="#E5E7EB" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="34" cy="33" r="6" fill="#2DD4BF"/>
+    <path d="M31.5 33L33.5 35L37 30.5" stroke="#0B0F14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(92 24)">
+    <text x="0" y="18" fill="#F8FAFC" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="19" font-weight="700">RunbookOps</text>
+    <text x="0" y="42" fill="#CBD5E1" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="18" font-weight="600">AI triage console</text>
+  </g>
+  <path d="M305 26C315.493 26 324 34.5066 324 45C324 55.4934 315.493 64 305 64C294.507 64 286 55.4934 286 45C286 34.5066 294.507 26 305 26Z" fill="#0F172A" stroke="#38BDF8" stroke-width="2"/>
+  <path d="M296 45H314" stroke="#38BDF8" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M305 36V54" stroke="#38BDF8" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

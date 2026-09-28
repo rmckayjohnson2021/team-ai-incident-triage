@@ -1,0 +1,12 @@
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Team AI triage mark</title>
+  <desc id="desc">A compact triage checklist mark for the Team AI incident triage app.</desc>
+  <rect width="96" height="96" rx="22" fill="#0B0F14"/>
+  <rect x="2" y="2" width="92" height="92" rx="20" stroke="#334155" stroke-width="4"/>
+  <rect x="24" y="22" width="48" height="52" rx="12" fill="#111827" stroke="#2DD4BF" stroke-width="4"/>
+  <path d="M35 36H61" stroke="#E5E7EB" stroke-width="5" stroke-linecap="round"/>
+  <path d="M35 48H55" stroke="#E5E7EB" stroke-width="5" stroke-linecap="round"/>
+  <path d="M35 60H47" stroke="#E5E7EB" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="62" cy="61" r="12" fill="#2DD4BF"/>
+  <path d="M56.5 61L60.5 65L68.5 55" stroke="#0B0F14" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

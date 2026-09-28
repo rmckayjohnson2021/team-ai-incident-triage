@@ -11,7 +11,7 @@
     {
       "label": "Run Streamlit app",
       "type": "shell",
-      "command": "uv run streamlit run app/streamlit_app.py",
+      "command": "uv run streamlit run streamlit_app.py",
       "group": "build",
       "problemMatcher": []
     }
