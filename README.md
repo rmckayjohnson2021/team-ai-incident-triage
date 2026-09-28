@@ -8,6 +8,21 @@
 
 Repository: <https://github.com/rmckayjohnson2021/team-ai-incident-triage>
 
+## Project Status
+
+RunbookOps AI is a working version 1 local application with synthetic incidents, runbook retrieval, structured model output, human-review routing, evaluation, and reviewer feedback capture. The companion `llm-cost-eval-gateway` project is planned but not yet implemented.
+
+## Two-Minute Demo Path
+
+1. Start the Streamlit app.
+2. Select a sample incident.
+3. Click **Run triage**.
+4. Review the recommendation, severity, cited runbooks, retrieved evidence, and route reason.
+5. Expand the structured output and prompt preview.
+6. Save reviewer feedback to see how corrections enter the learning backlog.
+
+The app remains runnable without an API key by routing incidents to human review with a clear provider diagnostic.
+
 ## Why This Exists
 
 Operational teams often have good runbooks, inconsistent incident notes, and limited time to convert noisy reports into reliable next steps. This project demonstrates a practical workflow pattern:
@@ -20,7 +35,13 @@ Operational teams often have good runbooks, inconsistent incident notes, and lim
 - Evaluate behavior against held-out synthetic incidents.
 - Capture reviewer feedback as a learning backlog for runbook and eval improvements.
 
+## Why This Is Different
+
+Many demo AI triage apps stop at a recommendation. RunbookOps AI keeps the workflow inspectable and improvable by exposing retrieved evidence, validated structured output, routing rationale, and reviewer feedback that can become future runbook updates or evaluation cases.
+
 ## Screenshots
+
+Screenshots show synthetic incident data only.
 
 | Console overview | Workflow console |
 | --- | --- |
@@ -29,6 +50,16 @@ Operational teams often have good runbooks, inconsistent incident notes, and lim
 | Sidebar and controls | Recommendation preview |
 | --- | --- |
 | ![RunbookOps sidebar](docs/screenshots/runbookops-sidebar.png) | ![RunbookOps recommendation preview](docs/screenshots/runbookops-recommendations.png) |
+
+## Architecture Decisions
+
+| Decision | Reason |
+| --- | --- |
+| Local Markdown runbooks | Keeps source knowledge inspectable |
+| Pydantic schema | Makes model output testable |
+| Deterministic calibration | Reduces risky model-only decisions |
+| Human-review route | Avoids over-automation |
+| Held-out incidents | Measures behavior after iteration |
 
 ## Current Results
 
@@ -175,6 +206,12 @@ team-ai-incident-triage/
 - Markdown runbooks
 - JSONL incident datasets
 
+## Prerequisites
+
+- Python 3.14 managed through `uv`
+- `uv` installed locally
+- Optional: OpenAI API key for provider-backed triage
+
 ## Quick Start
 
 Install dependencies:
@@ -278,7 +315,9 @@ Each triage result is validated into a structured object with:
 - Reviewer feedback capture that turns human corrections into a learning backlog.
 - A professional Streamlit console for inspection, demo, and iteration.
 
-## What It Does Not Do
+## Known Limitations / Next Steps
+
+### What It Does Not Do
 
 - It does not execute remediation.
 - It does not use real customer or production incident data.
@@ -286,6 +325,14 @@ Each triage result is validated into a structured object with:
 - It does not include production authentication, authorization, audit logging, or tenant isolation.
 - It does not prove production reliability without a larger real-world evaluation set.
 
-## Companion Project
+### Roadmap & Next Steps
 
-This repo is designed to pair with [`llm-cost-eval-gateway`](https://github.com/rmckayjohnson2021/llm-cost-eval-gateway), a reusable gateway for model execution, budget enforcement, routing, retries, and evaluation.
+- Add cost-aware model routing through the planned gateway.
+- Expand incident datasets.
+- Add exportable review reports.
+- Add authentication and audit logging for production-style deployment.
+- Add CI evaluation checks.
+
+## Planned Companion Project
+
+This repo is designed to pair with [`llm-cost-eval-gateway`](https://github.com/rmckayjohnson2021/llm-cost-eval-gateway), a planned reusable gateway for model execution, budget enforcement, routing, retries, and evaluation.
