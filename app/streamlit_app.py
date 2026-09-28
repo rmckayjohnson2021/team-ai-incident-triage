@@ -108,6 +108,14 @@ def category_coverage(cases: list[dict[str, str]]) -> str:
     return f"{len(categories)}/5"
 
 
+def incident_log_text(description: str) -> str:
+    return (
+        "[timestamp] ERROR: Incident signal received.\n"
+        f"[timestamp] {description}\n"
+        "[timestamp] Awaiting runbook retrieval and triage decision."
+    )
+
+
 def render_badge(label: str, *, icon: str | None = None, color: str = "blue", help: str | None = None) -> None:
     st.badge(label, icon=icon, color=color, help=help)
 
@@ -152,7 +160,7 @@ def render_metric_row(run: TriageRun) -> None:
     input_tokens = run.model_result.input_tokens if run.model_result else None
     output_tokens = run.model_result.output_tokens if run.model_result else None
 
-    cols = st.columns(4, gap="medium")
+    cols = st.columns(2, gap="medium")
     cols[0].metric(
         "Category",
         CATEGORY_LABELS.get(analysis.category, analysis.category),
@@ -167,14 +175,15 @@ def render_metric_row(run: TriageRun) -> None:
         icon=":material/priority_high:",
         border=True,
     )
-    cols[2].metric(
+    metric_bottom = st.columns(2, gap="medium")
+    metric_bottom[0].metric(
         "Total latency",
         f"{run.total_latency_ms} ms",
         help=HELP_TEXT["total_latency"],
         icon=":material/timer:",
         border=True,
     )
-    cols[3].metric(
+    metric_bottom[1].metric(
         "Model latency",
         f"{model_latency} ms",
         help=HELP_TEXT["model_latency"],
@@ -252,27 +261,21 @@ def render_reference_panel(run: TriageRun) -> None:
 
 def render_result(run: TriageRun) -> None:
     with st.container(border=True):
-        st.subheader("Triage decision", icon=":material/analytics:", help=HELP_TEXT["triage_decision"])
+        st.subheader("AI recommendations", icon=":material/psychology:", help=HELP_TEXT["triage_decision"])
         render_status_badges(run)
         render_metric_row(run)
 
-    left, right = st.columns([0.58, 0.42], gap="large")
+        st.subheader("Recommendation", icon=":material/task_alt:", help=HELP_TEXT["recommendation"])
+        st.markdown(run.analysis.recommendation)
 
-    with left:
-        with st.container(border=True):
-            st.subheader("Recommendation", icon=":material/task_alt:", help=HELP_TEXT["recommendation"])
-            st.markdown(run.analysis.recommendation)
+        st.subheader("Route reason", icon=":material/route:", help=HELP_TEXT["route_reason"])
+        st.markdown(run.analysis.route_reason)
 
-        with st.container(border=True):
-            st.subheader("Incident summary", icon=":material/summarize:", help=HELP_TEXT["summary"])
-            st.markdown(run.analysis.summary)
+    with st.container(border=True):
+        st.subheader("Incident summary", icon=":material/summarize:", help=HELP_TEXT["summary"])
+        st.markdown(run.analysis.summary)
 
-        with st.container(border=True):
-            st.subheader("Route reason", icon=":material/route:", help=HELP_TEXT["route_reason"])
-            st.markdown(run.analysis.route_reason)
-
-    with right:
-        render_reference_panel(run)
+    render_reference_panel(run)
 
     tab_sources, tab_raw, tab_prompt = st.tabs(
         [
@@ -291,14 +294,15 @@ def render_result(run: TriageRun) -> None:
 
 def render_empty_result(cases: list[dict[str, str]]) -> None:
     with st.container(border=True):
-        st.subheader(
-            "Awaiting triage",
-            icon=":material/pending:",
-            help="Run triage to populate this side with model-backed analysis and retrieved evidence.",
-        )
-        st.caption(
-            "No active triage result is loaded for this session. The decision panel will populate after a run."
-        )
+        st.subheader("AI recommendations", icon=":material/psychology:")
+        st.caption("Preview")
+        st.metric("Confidence", "92% match", help="Static preview of the recommendation panel before a live run.", border=True)
+        st.progress(0.92, text="RB-102: Schema migration failures")
+        st.progress(0.81, text="RB-039: Data pipeline stagnation")
+
+        with st.container(border=True):
+            st.markdown("**Awaiting run...**")
+            st.caption("The decision panel will populate with real-time analysis after the run.")
 
     cols = st.columns(3)
     cols[0].metric("Runbooks", "5", help="Approved Markdown runbooks used by retrieval.", border=True)
@@ -318,34 +322,44 @@ def render_empty_result(cases: list[dict[str, str]]) -> None:
 
 def render_sidebar(cases: list[dict[str, str]]) -> None:
     with st.sidebar:
-        st.header("Operations console", icon=":material/dashboard:", help="Quick context for reviewers exploring the demo.")
+        st.header("RunbookOps AI", icon=":material/library_books:", help="Quick context for reviewers exploring the demo.")
         st.caption(APP_TAGLINE)
-        st.badge("Synthetic data only", icon=":material/security:", color="gray", help=HELP_TEXT["synthetic_data"])
-        st.badge("Human-in-the-loop", icon=":material/rate_review:", color="orange", help=HELP_TEXT["human_loop"])
-        st.badge("Runbook grounded", icon=":material/fact_check:", color="green", help=HELP_TEXT["runbook_grounded"])
 
-        st.subheader("System profile", icon=":material/monitoring:", help="Dataset and workflow coverage at a glance.")
-        st.metric(
-            "Incident records",
+        st.subheader("System overview", icon=":material/monitoring:", help="Dataset and workflow coverage at a glance.")
+        overview_left, overview_right = st.columns(2)
+        overview_left.metric(
+            "Records",
             len(cases),
             help="Total synthetic cases loaded into the app.",
             icon=":material/database:",
             border=True,
         )
-        st.metric(
-            "Held-out set",
+        overview_right.metric(
+            "Held-out",
             split_count(cases, "Held-out"),
             help="Cases reserved for evaluation runs.",
             icon=":material/rule:",
             border=True,
         )
-        st.metric(
-            "Category coverage",
+        overview_left.metric(
+            "Cases",
+            split_count(cases, "Development"),
+            help="Development cases available for local iteration.",
+            icon=":material/bug_report:",
+            border=True,
+        )
+        overview_right.metric(
+            "Coverage",
             category_coverage(cases),
             help="Expected-label coverage across the five runbook categories.",
             icon=":material/hub:",
             border=True,
         )
+
+        st.subheader("Controls", icon=":material/tune:")
+        st.toggle("Retrieval augmented", value=True, disabled=True, help=HELP_TEXT["retrieval_augmented"])
+        st.toggle("Structured output", value=True, disabled=True, help=HELP_TEXT["structured_output"])
+        st.toggle("Evaluation ready", value=True, disabled=True, help=HELP_TEXT["evaluation_ready"])
 
         st.subheader("Evaluation", icon=":material/query_stats:", help=HELP_TEXT["evaluation_ready"])
         with st.expander("Evaluation command", icon=":material/terminal:", expanded=False):
@@ -359,48 +373,31 @@ def render_sidebar(cases: list[dict[str, str]]) -> None:
 
 
 def render_app_header(cases: list[dict[str, str]]) -> None:
-    logo_col, title_col = st.columns([0.09, 0.91], vertical_alignment="center")
-    logo_col.image(str(LOGO_MARK_PATH), width=64)
-    with title_col:
-        st.title(APP_DISPLAY_NAME, icon=":material/analytics:")
-        st.caption(
-            "Operations-grade workflow for sourced recommendations, structured output, and review routing."
-        )
+    st.header(APP_DISPLAY_NAME, icon=":material/analytics:")
+    st.caption(
+        f"{APP_TAGLINE} | {len(cases)} synthetic records | {category_coverage(cases)} category coverage"
+    )
 
-    with st.container(horizontal=True, gap="small"):
-        st.badge("Retrieval augmented", icon=":material/search:", color="blue", help=HELP_TEXT["retrieval_augmented"])
-        st.badge("Structured output", icon=":material/data_object:", color="violet", help=HELP_TEXT["structured_output"])
-        st.badge("Evaluation ready", icon=":material/query_stats:", color="green", help=HELP_TEXT["evaluation_ready"])
 
-    status_cols = st.columns(4, gap="medium")
-    status_cols[0].metric(
-        "Runbooks",
-        "5",
-        help="Approved operational knowledge sources used for retrieval.",
-        icon=":material/folder_copy:",
-        border=True,
-    )
-    status_cols[1].metric(
-        "Synthetic cases",
-        len(cases),
-        help="Development and held-out incidents available in the local dataset.",
-        icon=":material/database:",
-        border=True,
-    )
-    status_cols[2].metric(
-        "Coverage",
-        category_coverage(cases),
-        help="Coverage across the five runbook categories.",
-        icon=":material/hub:",
-        border=True,
-    )
-    status_cols[3].metric(
-        "Execution",
-        "Local",
-        help="Runs locally with an optional provider-backed model call configured by .env.",
-        icon=":material/laptop_windows:",
-        border=True,
-    )
+def render_context_bar(cases: list[dict[str, str]], case_labels: list[str]) -> dict[str, str]:
+    with st.container(border=True):
+        top_left, top_right = st.columns([0.68, 0.32], gap="large", vertical_alignment="center")
+        with top_left:
+            selected_label = st.selectbox(
+                "Sample incident",
+                case_labels,
+                help=HELP_TEXT["sample_incident"],
+            )
+            selected_case = cases[case_labels.index(selected_label)]
+            st.caption("Sample incident")
+            st.markdown(f"**{selected_case['split']}** {case_label(selected_case)}")
+        with top_right:
+            meta_left, meta_right = st.columns(2)
+            meta_left.caption(f"Metadata: **{selected_case['incident_id']}**")
+            meta_left.caption("Time: **5:00 AM PST**")
+            meta_right.caption(f"ID: **{selected_case['incident_id']}**")
+            meta_right.caption("Status: **Triage pending**")
+    return selected_case
 
 
 def render_footer() -> None:
@@ -434,61 +431,40 @@ case_labels = [case_label(case) for case in cases]
 
 render_sidebar(cases)
 render_app_header(cases)
+selected_case = render_context_bar(cases, case_labels)
 
-input_col, result_col = st.columns([0.38, 0.62], gap="large")
+input_col, result_col = st.columns([0.62, 0.38], gap="large")
 
-with input_col:
-    with st.container(border=True):
-        st.subheader(
-            "Incident workspace",
-            icon=":material/edit_note:",
-            help="Choose or edit a synthetic incident before sending it through the triage workflow.",
+with input_col, st.container(border=True):
+    st.subheader("Incident report", icon=":material/edit_note:")
+
+    with st.form("triage_form", border=False):
+        incident_text = st.text_area(
+            "Incident report (logs)",
+            value=incident_log_text(selected_case["description"]),
+            height=280,
+            help=HELP_TEXT["incident_report"],
         )
 
-        with st.form("triage_form", border=False):
-            selected_label = st.selectbox(
-                "Sample incident",
-                case_labels,
-                help=HELP_TEXT["sample_incident"],
-            )
-            selected_case = cases[case_labels.index(selected_label)]
-            incident_text = st.text_area(
-                "Incident report",
-                value=selected_case["description"],
-                height=250,
-                help=HELP_TEXT["incident_report"],
-            )
+        with st.expander("Expected label", icon=":material/visibility:", expanded=False):
+            st.caption(HELP_TEXT["expected_label"])
+            st.markdown(f"**Category:** `{selected_case['expected_category']}`")
+            st.markdown(f"**Severity:** `{selected_case['expected_severity']}`")
+            st.markdown(f"**Runbook:** `{selected_case['expected_runbook']}`")
+            st.markdown(f"**Escalate:** `{selected_case['should_escalate']}`")
 
-            with st.expander("Expected label", icon=":material/visibility:", expanded=False):
-                st.caption(HELP_TEXT["expected_label"])
-                st.markdown(f"**Category:** `{selected_case['expected_category']}`")
-                st.markdown(f"**Severity:** `{selected_case['expected_severity']}`")
-                st.markdown(f"**Runbook:** `{selected_case['expected_runbook']}`")
-                st.markdown(f"**Escalate:** `{selected_case['should_escalate']}`")
-
-            submitted = st.form_submit_button(
-                "Run triage",
-                type="primary",
-                icon=":material/play_arrow:",
-                width="stretch",
-                help=HELP_TEXT["run_triage"],
-            )
-
-    with st.container(border=True):
-        st.subheader("Sample metadata", icon=":material/info:", help=HELP_TEXT["sample_metadata"])
-        st.badge(
-            selected_case["split"],
-            icon=":material/dataset:",
-            color="primary",
-            help="Development cases are for iteration. Held-out cases are reserved for evaluation.",
+        submitted = st.form_submit_button(
+            "Run triage",
+            type="primary",
+            icon=":material/play_arrow:",
+            width="stretch",
+            help=HELP_TEXT["run_triage"],
         )
-        st.markdown(f"**Incident:** `{selected_case['incident_id']}`")
-        st.caption(selected_case["title"])
 
 if submitted:
     with st.spinner("Retrieving runbooks and calling the model..."):
         st.session_state.triage_run = triage_incident_with_context(incident_text)
-        st.session_state.triage_case = selected_label
+        st.session_state.triage_case = case_label(selected_case)
     st.toast("Triage complete", icon=":material/check_circle:")
 
 with result_col:
