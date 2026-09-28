@@ -14,7 +14,7 @@ INCIDENT_DIR = PROJECT_ROOT / "data" / "incidents"
 LOGO_PATH = PROJECT_ROOT / "app" / "assets" / "triage_logo.svg"
 LOGO_MARK_PATH = PROJECT_ROOT / "app" / "assets" / "triage_mark.svg"
 LOGO_ICON_PATH = PROJECT_ROOT / "app" / "assets" / "triage_icon.svg"
-AUTHOR_IMAGE_PATH = PROJECT_ROOT / "app" / "assets" / "author.jpg"
+AUTHOR_AVATAR_PATH = PROJECT_ROOT / "app" / "assets" / "author_avatar.png"
 APP_DISPLAY_NAME = "RunbookOps AI"
 APP_TAGLINE = "AI triage engine"
 OWNER_NAME = "Ryan Johnson"
@@ -299,7 +299,12 @@ def render_empty_result(cases: list[dict[str, str]]) -> None:
     with st.container(border=True):
         st.subheader("AI recommendations", icon=":material/psychology:")
         st.caption("Preview")
-        st.metric("Confidence", "92% match", help="Static preview of the recommendation panel before a live run.", border=True)
+        st.metric(
+            "Confidence",
+            "92% match",
+            help="Static preview of the recommendation panel before a live run.",
+            border=True,
+        )
         st.progress(0.92, text="RB-102: Schema migration failures")
         st.progress(0.81, text="RB-039: Data pipeline stagnation")
 
@@ -325,6 +330,7 @@ def render_empty_result(cases: list[dict[str, str]]) -> None:
 
 def render_sidebar(cases: list[dict[str, str]]) -> None:
     with st.sidebar:
+        st.image(str(LOGO_MARK_PATH), width=74)
         st.header(APP_DISPLAY_NAME, icon=":material/library_books:", help="Quick context for reviewers exploring the demo.")
         st.caption(APP_TAGLINE)
 
@@ -369,8 +375,8 @@ def render_sidebar(cases: list[dict[str, str]]) -> None:
             st.code("uv run python -m app.triage.evaluation", language="powershell")
 
         st.subheader("Builder", icon=":material/person:", help="Author and source links for reviewers.")
-        author_image, author_text = st.columns([0.28, 0.72], vertical_alignment="center")
-        author_image.image(str(AUTHOR_IMAGE_PATH), width=58)
+        author_image, author_text = st.columns([0.34, 0.66], vertical_alignment="center")
+        author_image.image(str(AUTHOR_AVATAR_PATH), width=82)
         author_text.markdown(f"**{OWNER_NAME}**")
         author_text.caption("AI workflow builder")
         st.markdown(f"[GitHub]({GITHUB_PROFILE_URL})")
@@ -378,10 +384,9 @@ def render_sidebar(cases: list[dict[str, str]]) -> None:
 
 
 def render_app_header(cases: list[dict[str, str]]) -> None:
-    st.header(APP_DISPLAY_NAME, icon=":material/analytics:")
-    st.caption(
-        f"{APP_TAGLINE} | {len(cases)} synthetic records | {category_coverage(cases)} category coverage"
-    )
+    st.image(str(LOGO_PATH), width=360)
+    st.caption(f"{APP_TAGLINE} | {len(cases)} synthetic records | {category_coverage(cases)} category coverage")
+    st.space("small")
 
 
 def render_context_bar(cases: list[dict[str, str]], case_labels: list[str]) -> dict[str, str]:
@@ -483,12 +488,12 @@ def render_splash_overlay(cases: list[dict[str, str]]) -> None:
           }}
           .runbookops-splash-panel {{
             position: relative;
-            width: min(760px, 100%);
+            width: min(680px, 100%);
             border: 1px solid #293548;
             border-radius: 12px;
             background: linear-gradient(145deg, rgba(17, 24, 39, 0.98), rgba(8, 12, 18, 0.98));
             box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
-            padding: 28px;
+            padding: 24px;
           }}
           .runbookops-splash-close {{
             position: absolute;
@@ -508,14 +513,14 @@ def render_splash_overlay(cases: list[dict[str, str]]) -> None:
             gap: 16px;
           }}
           .runbookops-splash-mark {{
-            width: 72px;
-            height: 72px;
+            width: 64px;
+            height: 64px;
             flex: 0 0 auto;
           }}
           .runbookops-splash-brand h1 {{
             margin: 0;
             color: #F8FAFC;
-            font-size: 30px;
+            font-size: 28px;
             line-height: 1.1;
           }}
           .runbookops-splash-brand p,
@@ -525,7 +530,7 @@ def render_splash_overlay(cases: list[dict[str, str]]) -> None:
             color: #94A3B8;
           }}
           .runbookops-splash-copy {{
-            margin-top: 22px;
+            margin-top: 18px;
             font-size: 15px;
             line-height: 1.55;
           }}
@@ -533,13 +538,13 @@ def render_splash_overlay(cases: list[dict[str, str]]) -> None:
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 14px;
-            margin: 24px 0 16px;
+            margin: 20px 0 14px;
           }}
           .runbookops-splash-metrics div {{
             border: 1px solid #293548;
             border-radius: 8px;
             background: #0B0F17;
-            padding: 16px;
+            padding: 14px;
           }}
           .runbookops-splash-metrics span {{
             display: block;
@@ -557,7 +562,7 @@ def render_splash_overlay(cases: list[dict[str, str]]) -> None:
             border: 1px solid #293548;
             border-radius: 8px;
             background: #080C12;
-            padding: 18px;
+            padding: 16px;
           }}
           .runbookops-splash-start h2 {{
             margin: 0;
@@ -642,7 +647,7 @@ with input_col, st.container(border=True):
         incident_text = st.text_area(
             "Incident report (logs)",
             value=incident_log_text(selected_case["description"]),
-            height=280,
+            height=250,
             help=HELP_TEXT["incident_report"],
         )
 
