@@ -359,3 +359,7 @@ Each triage result is validated into a structured object with:
 ## Companion Project
 
 This repo pairs with [`llm-cost-eval-gateway`](https://github.com/rmckayjohnson2021/llm-cost-eval-gateway), a reusable gateway for model execution, budget enforcement, routing, retries, usage ledger reporting, and policy comparison. The current integration uses a local Python import so both projects can be demonstrated together without deployment infrastructure.
+
+## Development Note
+
+This project was built by Ryan Johnson with AI-assisted development support from OpenAI Codex. I directed the product goals, architecture, testing, review, and iteration of the implementation. All code, documentation, and outputs were co-developed using Codex. 
