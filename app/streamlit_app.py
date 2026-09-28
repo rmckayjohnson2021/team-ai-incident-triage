@@ -13,8 +13,10 @@ from app.triage.workflow import TriageRun, triage_incident_with_context
 INCIDENT_DIR = PROJECT_ROOT / "data" / "incidents"
 LOGO_PATH = PROJECT_ROOT / "app" / "assets" / "triage_logo.svg"
 LOGO_MARK_PATH = PROJECT_ROOT / "app" / "assets" / "triage_mark.svg"
-APP_DISPLAY_NAME = "RunbookOps Triage"
-APP_TAGLINE = "AI-assisted incident triage console"
+LOGO_ICON_PATH = PROJECT_ROOT / "app" / "assets" / "triage_icon.svg"
+AUTHOR_IMAGE_PATH = PROJECT_ROOT / "app" / "assets" / "author.jpg"
+APP_DISPLAY_NAME = "RunbookOps AI"
+APP_TAGLINE = "AI triage engine"
 OWNER_NAME = "Ryan Johnson"
 OWNER_EMAIL = "rmckayjohnson2021@gmail.com"
 GITHUB_PROFILE_URL = "https://github.com/rmckayjohnson2021"
@@ -79,6 +81,7 @@ HELP_TEXT = {
     "prompt_preview": "The prompt sent to the model, including incident text and approved runbook snippets.",
     "sample_metadata": "Metadata for the selected synthetic case, useful during demos and held-out evaluation review.",
     "project_artifact": "Project context: what the workflow demonstrates and where to inspect the source.",
+    "splash": "This first-use overview introduces the workflow before you enter the triage console.",
 }
 
 
@@ -322,7 +325,7 @@ def render_empty_result(cases: list[dict[str, str]]) -> None:
 
 def render_sidebar(cases: list[dict[str, str]]) -> None:
     with st.sidebar:
-        st.header("RunbookOps AI", icon=":material/library_books:", help="Quick context for reviewers exploring the demo.")
+        st.header(APP_DISPLAY_NAME, icon=":material/library_books:", help="Quick context for reviewers exploring the demo.")
         st.caption(APP_TAGLINE)
 
         st.subheader("System overview", icon=":material/monitoring:", help="Dataset and workflow coverage at a glance.")
@@ -366,8 +369,10 @@ def render_sidebar(cases: list[dict[str, str]]) -> None:
             st.code("uv run python -m app.triage.evaluation", language="powershell")
 
         st.subheader("Builder", icon=":material/person:", help="Author and source links for reviewers.")
-        st.markdown(f"**{OWNER_NAME}**")
-        st.caption("AI workflow builder", help="Source links are included for technical review.")
+        author_image, author_text = st.columns([0.28, 0.72], vertical_alignment="center")
+        author_image.image(str(AUTHOR_IMAGE_PATH), width=58)
+        author_text.markdown(f"**{OWNER_NAME}**")
+        author_text.caption("AI workflow builder")
         st.markdown(f"[GitHub]({GITHUB_PROFILE_URL})")
         st.markdown(f"[Repository]({REPO_URL})")
 
@@ -413,9 +418,56 @@ def render_footer() -> None:
             )
 
 
+@st.dialog(
+    "Welcome to RunbookOps AI",
+    width="medium",
+    dismissible=False,
+    icon=":material/rocket_launch:",
+)
+def render_splash(cases: list[dict[str, str]]) -> None:
+    st.image(str(LOGO_PATH), width="stretch")
+    st.caption(
+        "A runbook-grounded incident triage console for testing retrieval, structured model output, and review routing.",
+        help=HELP_TEXT["splash"],
+    )
+
+    metric_columns = st.columns(3)
+    metric_columns[0].metric(
+        "Incident records",
+        len(cases),
+        help="Synthetic incidents available in the console.",
+        border=True,
+    )
+    metric_columns[1].metric(
+        "Held-out cases",
+        split_count(cases, "Held-out"),
+        help="Reserved cases used for evaluation.",
+        border=True,
+    )
+    metric_columns[2].metric(
+        "Coverage",
+        category_coverage(cases),
+        help="Runbook category coverage across the synthetic dataset.",
+        border=True,
+    )
+
+    st.markdown(
+        "Start with a sample incident, inspect the retrieved runbook evidence, then run triage to review the model's structured decision."
+    )
+    if st.button(
+        "Enter console",
+        type="primary",
+        icon=":material/login:",
+        width="stretch",
+        help="Close this introduction for the current browser session.",
+    ):
+        st.session_state.show_splash = False
+        st.rerun()
+
+
 st.set_page_config(
     page_title=APP_DISPLAY_NAME,
-    page_icon=str(LOGO_MARK_PATH),
+    page_icon=str(LOGO_ICON_PATH),
     layout="wide",
 )
 
@@ -428,6 +480,11 @@ st.logo(
 
 cases = load_incidents()
 case_labels = [case_label(case) for case in cases]
+
+if "show_splash" not in st.session_state:
+    st.session_state.show_splash = True
+if st.session_state.show_splash:
+    render_splash(cases)
 
 render_sidebar(cases)
 render_app_header(cases)

@@ -1,13 +1,13 @@
 [theme]
 base = "dark"
-primaryColor = "#2DD4BF"
-backgroundColor = "#0B0F14"
+primaryColor = "#00E5FF"
+backgroundColor = "#0B0F17"
 secondaryBackgroundColor = "#111827"
 textColor = "#E5E7EB"
-linkColor = "#67E8F9"
+linkColor = "#7DD3FC"
 codeBackgroundColor = "#0F172A"
 codeTextColor = "#A7F3D0"
-borderColor = "#334155"
+borderColor = "#293548"
 showWidgetBorder = true
 showSidebarBorder = true
 baseRadius = "8px"
@@ -30,7 +30,7 @@ blueColor = "#38BDF8"
 violetColor = "#A78BFA"
 grayColor = "#94A3B8"
 
-chartCategoricalColors = ["#2DD4BF", "#38BDF8", "#A78BFA", "#34D399", "#FDBA74", "#F87171", "#94A3B8"]
+chartCategoricalColors = ["#00E5FF", "#0072FF", "#A78BFA", "#34D399", "#FDBA74", "#F87171", "#94A3B8"]
 
 [client]
 toolbarMode = "minimal"
@@ -41,4 +41,4 @@ secondaryBackgroundColor = "#111827"
 codeBackgroundColor = "#0F172A"
 textColor = "#E5E7EB"
 borderColor = "#1F2937"
-primaryColor = "#2DD4BF"
+primaryColor = "#00E5FF"
