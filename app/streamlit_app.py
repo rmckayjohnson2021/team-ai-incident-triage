@@ -394,7 +394,7 @@ def render_sidebar(cases: list[dict[str, str]]) -> None:
             border=True,
         )
 
-        st.subheader("Controls", icon=":material/tune:")
+        st.subheader("Capabilities", icon=":material/tune:")
         st.toggle("Retrieval augmented", value=True, disabled=True, help=HELP_TEXT["retrieval_augmented"])
         st.toggle("Structured output", value=True, disabled=True, help=HELP_TEXT["structured_output"])
         st.toggle("Evaluation ready", value=True, disabled=True, help=HELP_TEXT["evaluation_ready"])
@@ -745,6 +745,9 @@ def main() -> None:
         link=REPO_URL,
         icon_image=str(LOGO_MARK_PATH),
     )
+    if st.session_state.get("triage_complete_toast"):
+        st.toast("Triage complete", icon=":material/check_circle:")
+        del st.session_state.triage_complete_toast
 
     cases = load_incidents()
     case_labels = [case_label(case) for case in cases]
@@ -773,8 +776,16 @@ def main() -> None:
             st.markdown(f"**Runbook:** `{selected_case['expected_runbook']}`")
             st.markdown(f"**Escalate:** `{selected_case['should_escalate']}`")
 
+        previous_case = st.session_state.get("triage_case_record", {})
+        previous_incident_text = st.session_state.get("triage_incident_text", "")
+        has_triaged_current_incident = (
+            previous_case.get("incident_id") == selected_case["incident_id"]
+            and previous_incident_text == incident_text
+        )
+        triage_button_label = "Rerun triage" if has_triaged_current_incident else "Run triage"
+
         submitted = st.button(
-            "Run triage",
+            triage_button_label,
             type="primary",
             icon=":material/play_arrow:",
             width="stretch",
@@ -787,7 +798,8 @@ def main() -> None:
             st.session_state.triage_case = case_label(selected_case)
             st.session_state.triage_case_record = selected_case
             st.session_state.triage_incident_text = incident_text
-        st.toast("Triage complete", icon=":material/check_circle:")
+            st.session_state.triage_complete_toast = True
+        st.rerun()
 
     with result_col:
         if "triage_run" in st.session_state:

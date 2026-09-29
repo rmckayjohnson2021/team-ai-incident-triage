@@ -18,5 +18,6 @@ def test_run_triage_keeps_app_visible_after_rerun(monkeypatch) -> None:
 
     assert not app.exception
     assert "triage_run" in app.session_state.to_dict()
+    assert any(button.label == "Rerun triage" for button in app.button)
     assert any(header.value == "RunbookOps AI" for header in app.header)
     assert any(subheader.value == "Review outcome" for subheader in app.subheader)
