@@ -39,6 +39,11 @@ Operational teams often have good runbooks, inconsistent incident notes, and lim
 
 Many demo AI triage apps stop at a recommendation. RunbookOps AI keeps the workflow inspectable and improvable by exposing retrieved evidence, validated structured output, routing rationale, and reviewer feedback that can become future runbook updates or evaluation cases.
 
+## Companion Project
+
+This repo pairs with [`llm-cost-eval-gateway`](https://github.com/rmckayjohnson2021/llm-cost-eval-gateway), a reusable gateway for model execution, budget enforcement, routing, retries, usage ledger reporting, and policy comparison. The current integration is HTTP-first for a more realistic service boundary, with a local Python fallback for development convenience.
+
+
 ## Screenshots
 
 Screenshots show synthetic incident data only.
@@ -371,10 +376,6 @@ Each triage result is validated into a structured object with:
 - Add exportable review reports.
 - Add authentication and audit logging for production-style deployment.
 - Add CI evaluation checks.
-
-## Companion Project
-
-This repo pairs with [`llm-cost-eval-gateway`](https://github.com/rmckayjohnson2021/llm-cost-eval-gateway), a reusable gateway for model execution, budget enforcement, routing, retries, usage ledger reporting, and policy comparison. The current integration is HTTP-first for a more realistic service boundary, with a local Python fallback for development convenience.
 
 ## Development Note
 
