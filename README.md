@@ -10,7 +10,7 @@ Repository: <https://github.com/rmckayjohnson2021/team-ai-incident-triage>
 
 ## Project Status
 
-RunbookOps AI is a working version 1 local application with synthetic incidents, runbook retrieval, structured model output, human-review routing, evaluation, and reviewer feedback capture. The companion `llm-cost-eval-gateway` project is planned but not yet implemented.
+RunbookOps AI is a working version 1 local application with synthetic incidents, runbook retrieval, structured model output, human-review routing, evaluation, reviewer feedback capture, and HTTP-first integration with the companion `llm-cost-eval-gateway` project.
 
 ## Two-Minute Demo Path
 
@@ -52,7 +52,7 @@ Screenshots show synthetic incident data only.
 | --- | --- |
 | ![RunbookOps console overview](docs/screenshots/runbookops-console-overview.png) | ![RunbookOps workflow console](docs/screenshots/runbookops-workflow-console.png) |
 
-| Sidebar and controls | Recommendation preview |
+| Sidebar and capabilities | Recommendation preview |
 | --- | --- |
 | ![RunbookOps sidebar](docs/screenshots/runbookops-sidebar.png) | ![RunbookOps recommendation preview](docs/screenshots/runbookops-recommendations.png) |
 
@@ -371,11 +371,11 @@ Each triage result is validated into a structured object with:
 
 ### Roadmap & Next Steps
 
-- Expand the gateway integration from local Python import to an HTTP service.
 - Expand incident datasets.
-- Add exportable review reports.
-- Add authentication and audit logging for production-style deployment.
+- Add richer export formats for review and evaluation reports.
 - Add CI evaluation checks.
+- Add authentication and audit logging for production-style deployment.
+- Add deployment packaging for a hosted demo environment.
 
 ## Development Note
 
