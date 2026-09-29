@@ -371,10 +371,10 @@ Each triage result is validated into a structured object with:
 
 ### Roadmap & Next Steps
 
-- Expand incident datasets.
+- Expand incident datasets and add more edge-case scenarios.
 - Add richer export formats for review and evaluation reports.
-- Add CI evaluation checks.
-- Add authentication and audit logging for production-style deployment.
+- Add CI evaluation checks for held-out incident behavior.
+- Add authentication, authorization, and audit logging for production-style deployment.
 - Add deployment packaging for a hosted demo environment.
 
 ## Development Note
