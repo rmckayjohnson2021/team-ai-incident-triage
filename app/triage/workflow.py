@@ -285,7 +285,7 @@ def triage_incident_with_context(incident_text: str) -> TriageRun:
 
     sources = retrieve_runbooks(incident_text, limit=3)
     prompt = build_prompt(incident_text, sources)
-    model_result = call_model(prompt)
+    model_result = call_model(prompt, routing_text=incident_text)
 
     try:
         payload = json.loads(model_result.text)

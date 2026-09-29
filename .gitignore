@@ -9,3 +9,4 @@ __pycache__/
 data/ledger.db
 data/reviews/*.jsonl
 reports/tmp/
+reports/*.log

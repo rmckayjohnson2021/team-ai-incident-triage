@@ -29,6 +29,7 @@ APP_TAGLINE = "AI triage engine"
 OWNER_NAME = "Ryan Johnson"
 OWNER_EMAIL = "rmckayjohnson2021@gmail.com"
 GITHUB_PROFILE_URL = "https://github.com/rmckayjohnson2021"
+LINKEDIN_PROFILE_URL = "https://www.linkedin.com/in/mckayjohnson"
 REPO_URL = "https://github.com/rmckayjohnson2021/team-ai-incident-triage"
 COMPANION_REPO_URL = "https://github.com/rmckayjohnson2021/llm-cost-eval-gateway"
 
@@ -404,12 +405,13 @@ def render_sidebar(cases: list[dict[str, str]]) -> None:
 
         render_learning_backlog()
 
-        st.subheader("Builder", icon=":material/person:", help="Author and source links for reviewers.")
+        st.subheader("Author", icon=":material/person:", help="Author and source links for reviewers.")
         author_image, author_text = st.columns([0.34, 0.66], vertical_alignment="center")
         author_image.image(str(AUTHOR_AVATAR_PATH), width=82)
         author_text.markdown(f"**{OWNER_NAME}**")
         author_text.caption("AI workflow builder")
         st.markdown(f"[GitHub]({GITHUB_PROFILE_URL})")
+        st.markdown(f"[LinkedIn]({LINKEDIN_PROFILE_URL})")
         st.markdown(f"[Repository]({REPO_URL})")
 
 
@@ -445,7 +447,10 @@ def render_footer() -> None:
         left, right = st.columns([0.48, 0.52], gap="large", vertical_alignment="center")
         with left:
             st.caption("Project artifact", help=HELP_TEXT["project_artifact"])
-            st.markdown(f"**{OWNER_NAME}** | [Email](mailto:{OWNER_EMAIL}) | [GitHub]({GITHUB_PROFILE_URL})")
+            st.markdown(
+                f"**{OWNER_NAME}** | [Email](mailto:{OWNER_EMAIL}) | "
+                f"[GitHub]({GITHUB_PROFILE_URL}) | [LinkedIn]({LINKEDIN_PROFILE_URL})"
+            )
         with right:
             st.caption(
                 f"[Source repository]({REPO_URL}) | [Companion gateway]({COMPANION_REPO_URL})",

@@ -254,9 +254,9 @@ http://127.0.0.1:8501
 
 If `OPENAI_API_KEY` is missing or still set to `replace_me`, the app remains runnable and routes incidents to human review with a clear provider diagnostic.
 
-## Optional Local Gateway Mode
+## Optional CostOps Gateway Mode
 
-RunbookOps AI can call the companion [`llm-cost-eval-gateway`](https://github.com/rmckayjohnson2021/llm-cost-eval-gateway) repo as a local Python gateway. This keeps the Streamlit workflow the same while moving model routing, budget checks, retries, usage ledger writes, and provider selection into the gateway.
+RunbookOps AI can call the companion [`llm-cost-eval-gateway`](https://github.com/rmckayjohnson2021/llm-cost-eval-gateway) as a local HTTP service. This keeps the triage workflow focused on incident analysis while moving model routing, API authentication, budget checks, retries, usage ledger writes, and provider selection into the gateway.
 
 Use direct mode for the original app behavior:
 
@@ -264,16 +264,32 @@ Use direct mode for the original app behavior:
 MODEL_EXECUTION_BACKEND=direct
 ```
 
-Use local gateway mode after cloning the companion repo beside this one:
+Use gateway mode after starting the companion gateway API:
 
 ```ini
 MODEL_EXECUTION_BACKEND=gateway
-GATEWAY_REPO_PATH=C:\Dev\repos\llm-cost-eval-gateway
+GATEWAY_BASE_URL=http://127.0.0.1:8600
+GATEWAY_API_KEY=local-dev-key
 GATEWAY_ROUTE_POLICY=routed
+```
+
+Start the gateway API from the companion repo:
+
+```powershell
+cd C:\Dev\repos\llm-cost-eval-gateway
+$env:GATEWAY_API_KEY="local-dev-key"
+$env:GATEWAY_LEDGER_PATH="C:\Dev\repos\llm-cost-eval-gateway\reports\runbookops_gateway_ledger.db"
+uv run uvicorn gateway.api:app --reload --port 8600
+```
+
+RunbookOps also keeps a local-import fallback for development if the HTTP service is unavailable:
+
+```ini
+GATEWAY_REPO_PATH=C:\Dev\repos\llm-cost-eval-gateway
 GATEWAY_LEDGER_PATH=C:\Dev\repos\llm-cost-eval-gateway\reports\runbookops_gateway_ledger.db
 ```
 
-In gateway mode, RunbookOps sends its assembled prompt to the gateway and maps the gateway response back into the existing triage workflow. If the gateway is missing or returns a blocked, failed, or human-review response, RunbookOps keeps the safe fallback behavior and routes the incident to human review with a diagnostic.
+In gateway mode, RunbookOps sends its assembled prompt and raw incident routing text to the gateway, then maps the gateway response back into the existing triage workflow. If the gateway returns a blocked, failed, or human-review response, RunbookOps keeps the safe fallback behavior and routes the incident to human review with a diagnostic.
 
 ## Run Tests
 
@@ -358,7 +374,7 @@ Each triage result is validated into a structured object with:
 
 ## Companion Project
 
-This repo pairs with [`llm-cost-eval-gateway`](https://github.com/rmckayjohnson2021/llm-cost-eval-gateway), a reusable gateway for model execution, budget enforcement, routing, retries, usage ledger reporting, and policy comparison. The current integration uses a local Python import so both projects can be demonstrated together without deployment infrastructure.
+This repo pairs with [`llm-cost-eval-gateway`](https://github.com/rmckayjohnson2021/llm-cost-eval-gateway), a reusable gateway for model execution, budget enforcement, routing, retries, usage ledger reporting, and policy comparison. The current integration is HTTP-first for a more realistic service boundary, with a local Python fallback for development convenience.
 
 ## Development Note
 

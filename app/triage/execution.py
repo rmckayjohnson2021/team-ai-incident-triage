@@ -148,13 +148,13 @@ def extract_usage(response: Any) -> tuple[int | None, int | None]:
     return getattr(usage, "input_tokens", None), getattr(usage, "output_tokens", None)
 
 
-def call_model(prompt: str, model: str | None = None) -> ModelResult:
+def call_model(prompt: str, model: str | None = None, routing_text: str | None = None) -> ModelResult:
     start = perf_counter()
 
     if configured_backend() == "gateway":
         from app.triage.gateway_client import call_gateway
 
-        return call_gateway(prompt, model)
+        return call_gateway(prompt, model, routing_text=routing_text)
 
     api_key = configured_api_key()
     selected_model = configured_model(model)

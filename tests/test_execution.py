@@ -113,13 +113,14 @@ def test_call_model_can_route_through_gateway_backend(monkeypatch):
 
     expected = execution.ModelResult(text='{"ok": true}', latency_ms=7, input_tokens=1, output_tokens=2)
 
-    def fake_call_gateway(prompt, model=None):
+    def fake_call_gateway(prompt, model=None, routing_text=None):
         assert prompt == "incident prompt"
         assert model is None
+        assert routing_text == "raw incident"
         return expected
 
     from app.triage import gateway_client
 
     monkeypatch.setattr(gateway_client, "call_gateway", fake_call_gateway)
 
-    assert execution.call_model("incident prompt") == expected
+    assert execution.call_model("incident prompt", routing_text="raw incident") == expected
