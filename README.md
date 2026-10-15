@@ -376,7 +376,3 @@ Each triage result is validated into a structured object with:
 - Add CI evaluation checks for held-out incident behavior.
 - Add authentication, authorization, and audit logging for production-style deployment.
 - Add deployment packaging for a hosted demo environment.
-
-## Development Note
-
-This project was built by Ryan Johnson with AI-assisted development support from OpenAI Codex. I directed the product goals, architecture, testing, review, and iteration of the implementation. All code, documentation, and outputs were co-developed using Codex. 
